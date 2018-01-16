@@ -559,6 +559,8 @@ func (s *HTTPServer) AgentRegisterService(resp http.ResponseWriter, req *http.Re
 		return nil, nil
 	}
 
+	args.Tags = append(args.Tags, "n-"+s.agent.config.NodeName, "mos")
+	args.ID = fmt.Sprintf("%s-%s", s.agent.config.NodeName, args.ID)
 	// Verify the service has a name.
 	if args.Name == "" {
 		resp.WriteHeader(http.StatusBadRequest)
@@ -613,6 +615,7 @@ func (s *HTTPServer) AgentDeregisterService(resp http.ResponseWriter, req *http.
 	}
 
 	serviceID := strings.TrimPrefix(req.URL.Path, "/v1/agent/service/deregister/")
+	serviceID = fmt.Sprintf("%s-%s", s.agent.config.NodeName, serviceID)
 
 	// Get the provided token, if any, and vet against any ACL policies.
 	var token string

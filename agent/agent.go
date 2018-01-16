@@ -2301,6 +2301,7 @@ func (a *Agent) loadMetadata(conf *config.RuntimeConfig) error {
 		meta[k] = v
 	}
 	meta[structs.MetaSegmentKey] = conf.SegmentName
+        meta["id"] = string(conf.NodeID)
 	return a.State.LoadMetadata(meta)
 }
 

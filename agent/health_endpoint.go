@@ -143,9 +143,21 @@ func (s *HTTPServer) HealthServiceNodes(resp http.ResponseWriter, req *http.Requ
 
 	// Check for a tag
 	params := req.URL.Query()
+	localnode := false
 	if _, ok := params["tag"]; ok {
-		args.ServiceTag = params.Get("tag")
-		args.TagFilter = true
+		tag := params.Get("tag")
+		if tag == "localnode" {
+			localnode = true
+			if args.NodeMetaFilters == nil {
+				args.NodeMetaFilters = make(map[string]string)
+			}
+			args.NodeMetaFilters["id"] = string(s.agent.config.NodeID)
+		} else if tag == "meshnode" {
+			args.NodeMetaFilters = s.agent.config.NodeMeta
+		} else {
+			args.ServiceTag = tag
+			args.TagFilter = true
+		}
 	}
 
 	// Pull out the service name
@@ -207,6 +219,10 @@ func (s *HTTPServer) HealthServiceNodes(resp http.ResponseWriter, req *http.Requ
 		}
 		if out.Nodes[i].Service != nil && out.Nodes[i].Service.Tags == nil {
 			out.Nodes[i].Service.Tags = make([]string, 0)
+		}
+		if out.Nodes[i].Service != nil && !localnode {
+			out.Nodes[i].Service.Address = out.Nodes[i].Node.Address
+			out.Nodes[i].Service.Port = 4140
 		}
 	}
 	return out.Nodes, nil
